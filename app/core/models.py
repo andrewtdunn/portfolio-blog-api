@@ -49,3 +49,15 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Picture(models.Model):
+    """Picture to be used in a post or portfolio"""
+    caption = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return self.caption + "::" + self.user.name

@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Tag
+from core.models import Tag, Picture
 
 from blog import serializers
 
@@ -23,3 +23,17 @@ class TagViewSet(viewsets.GenericViewSet,
     def perform_create(self, serializer):
         """Create a new tag"""
         serializer.save(user=self.request.user)
+
+
+class PictureViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    """Manage pictures in the database"""
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = Picture.objects.all()
+    serializer_class = serializers.PictureSerializer
+
+    def get_queryset(self):
+        """Return objects for the current authenticated user"""
+        return self.queryset.filter(
+                        user=self.request.user
+                    ).order_by('-caption')

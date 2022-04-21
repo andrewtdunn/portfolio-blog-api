@@ -52,3 +52,12 @@ class ModelTests(TestCase):
         )
 
         self.assertEqual(str(tag), tag.name)
+
+    def test_picture_str(self):
+        """Test the picture representative"""
+        picture = models.Picture.objects.create(
+            user=sample_user(),
+            caption="Test Caption"
+        )
+        self.assertEqual(str(picture),
+                         picture.caption + "::" + picture.user.name)
