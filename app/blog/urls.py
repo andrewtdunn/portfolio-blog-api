@@ -6,6 +6,7 @@ from blog import views
 
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
+router.register('pictures', views.PictureViewSet)
 
 app_name = 'blog'
 
