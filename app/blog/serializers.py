@@ -42,3 +42,12 @@ class BlogDetailSerializer(BlogSerializer):
     """Serialize the blog detail"""
     pictures = PictureSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
+
+
+class PictureImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading image to Picture"""
+
+    class Meta:
+        model = Picture
+        fields = ('id', 'image')
+        read_only_fields = ('id',)
