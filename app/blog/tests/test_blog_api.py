@@ -1,13 +1,10 @@
+from blog.serializers import BlogDetailSerializer, BlogSerializer
+from core.models import Blog, Picture, Tag
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from core.models import Blog, Tag, Picture
-from blog.serializers import BlogSerializer, BlogDetailSerializer
-
 
 BLOG_URL = reverse('blog:blog-list')
 
@@ -149,3 +146,36 @@ class PrivateBlogApiTests(TestCase):
         self.assertEqual(pictures.count(), 2)
         self.assertIn(picture1, pictures)
         self.assertIn(picture2, pictures)
+
+    def test_partial_update_blog(self):
+        """Test updating a blog with patch"""
+        blog = sample_blog(user=self.user)
+        blog.tags.add(sample_tag(user=self.user))
+        new_tag = sample_tag(user=self.user, name='fractals')
+
+        payload = {'title': 'The Cure Show', 'tags': [new_tag.id]}
+        url = detail_url(blog.id)
+        self.client.patch(url, payload)
+
+        blog.refresh_from_db()
+        self.assertEqual(blog.title, payload['title'])
+        tags = blog.tags.all()
+        self.assertEqual(len(tags), 1)
+        self.assertIn(new_tag, tags)
+
+    def test_full_update_blog(self):
+        """Test updating a blog with put"""
+        blog = sample_blog(user=self.user)
+        blog.tags.add(sample_tag(user=self.user))
+        payload = {
+            'title': 'Justin Timberlake',
+            'text': 'Cool Show'
+        }
+        url = detail_url(blog.id)
+        self.client.put(url, payload)
+
+        blog.refresh_from_db()
+        self.assertEqual(blog.title, payload['title'])
+        self.assertEqual(blog.text, payload['text'])
+        tags = blog.tags.all()
+        self.assertEqual(len(tags), 0)
