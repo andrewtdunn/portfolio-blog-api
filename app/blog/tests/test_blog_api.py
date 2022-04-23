@@ -5,11 +5,26 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Blog
-from blog.serializers import BlogSerializer
+from core.models import Blog, Tag, Picture
+from blog.serializers import BlogSerializer, BlogDetailSerializer
 
 
 BLOG_URL = reverse('blog:blog-list')
+
+
+def detail_url(blog_id):
+    """Return blog detail URL"""
+    return reverse('blog:blog-detail', args=[blog_id])
+
+
+def sample_tag(user, name='Music'):
+    """Create and return a sample tag"""
+    return Tag.objects.create(user=user, name=name)
+
+
+def sample_picture(user, caption='portrait'):
+    """Create and return a sample picture"""
+    return Picture.objects.create(user=user, caption=caption)
 
 
 def sample_blog(user, **params):
@@ -73,4 +88,16 @@ class PrivateBlogApiTests(TestCase):
         blogs = Blog.objects.filter(user=self.user)
         serializer = BlogSerializer(blogs, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_view_blog_detail(self):
+        """Test viewing a blog detail"""
+        blog = sample_blog(user=self.user)
+        blog.tags.add(sample_tag(user=self.user))
+        blog.pictures.add(sample_picture(user=self.user))
+
+        url = detail_url(blog.id)
+        res = self.client.get(url)
+
+        serializer = BlogDetailSerializer(blog)
         self.assertEqual(res.data, serializer.data)

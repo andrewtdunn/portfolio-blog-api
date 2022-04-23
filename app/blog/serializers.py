@@ -36,3 +36,9 @@ class BlogSerializer(serializers.ModelSerializer):
         model = Blog
         fields = ('id', 'title', 'text', 'pictures', 'tags')
         read_only_fields = ('id',)
+
+
+class BlogDetailSerializer(BlogSerializer):
+    """Serialize the blog detail"""
+    pictures = PictureSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
