@@ -101,3 +101,51 @@ class PrivateBlogApiTests(TestCase):
 
         serializer = BlogDetailSerializer(blog)
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_basic_blog(self):
+        payload = {
+            'title': 'Sample Blog Post',
+            'text': 'Sample Blog Text'
+        }
+        res = self.client.post(BLOG_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        blog = Blog.objects.get(id=res.data['id'])
+        for key in payload.keys():
+            self.assertEqual(payload[key], getattr(blog, key))
+
+    def test_create_blog_with_tags(self):
+        """Test creating a blog with tags"""
+        tag1 = sample_tag(user=self.user, name='music')
+        tag2 = sample_tag(user=self.user, name='AI')
+        payload = {
+            'title': 'Cool New Music',
+            'text': 'Some cool bands',
+            'tags': [tag1.id, tag2.id]
+        }
+        res = self.client.post(BLOG_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        blog = Blog.objects.get(id=res.data['id'])
+        tags = blog.tags.all()
+        self.assertEqual(tags.count(), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    def test_create_recipe_with_pictures(self):
+        """Test creating blog with pictures"""
+        picture1 = sample_picture(user=self.user, caption='Birthday')
+        picture2 = sample_picture(user=self.user, caption="New Years")
+        payload = {
+            'title': 'Party Pictures',
+            'text': 'Fun time',
+            'pictures': [picture1.id, picture2.id]
+        }
+        res = self.client.post(BLOG_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        blog = Blog.objects.get(id=res.data['id'])
+        pictures = blog.pictures.all()
+        self.assertEqual(pictures.count(), 2)
+        self.assertIn(picture1, pictures)
+        self.assertIn(picture2, pictures)

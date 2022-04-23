@@ -58,3 +58,7 @@ class BlogViewSet(viewsets.ModelViewSet):
             return serializers.BlogDetailSerializer
 
         return self.serializer_class
+
+    def perform_create(self, serializer):
+        """Create a new Blog"""
+        serializer.save(user=self.request.user)
