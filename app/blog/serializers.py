@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Tag, Picture
+from core.models import Tag, Picture, Blog
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -9,7 +9,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name')
-        read_only_fields = ('id', )
+        read_only_fields = ('id',)
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -18,4 +18,21 @@ class PictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Picture
         fields = ('id', 'caption')
+        read_only_fields = ('id',)
+
+
+class BlogSerializer(serializers.ModelSerializer):
+    """Serializer for a blog object"""
+    pictures = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Picture.objects.all()
+    )
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
+
+    class Meta:
+        model = Blog
+        fields = ('id', 'title', 'text', 'pictures', 'tags')
         read_only_fields = ('id',)

@@ -52,7 +52,7 @@ class Tag(models.Model):
 
 
 class Picture(models.Model):
-    """Picture to be used in a post or portfolio"""
+    """Picture to be used in a post, portfolio, or bio"""
     caption = models.CharField(max_length=255)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -60,4 +60,19 @@ class Picture(models.Model):
     )
 
     def __str__(self):
-        return self.caption + "::" + self.user.name
+        return self.caption
+
+
+class Blog(models.Model):
+    """Blog post"""
+    title = models.CharField(max_length=255)
+    text = models.TextField(blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    pictures = models.ManyToManyField('Picture')
+    tags = models.ManyToManyField('Tag')
+
+    def __str__(self):
+        return self.title

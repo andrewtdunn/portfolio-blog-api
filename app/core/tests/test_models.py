@@ -59,5 +59,14 @@ class ModelTests(TestCase):
             user=sample_user(),
             caption="Test Caption"
         )
-        self.assertEqual(str(picture),
-                         picture.caption + "::" + picture.user.name)
+        self.assertEqual(str(picture), picture.caption)
+
+    def test_blog_str(self):
+        """Test the blog string representation."""
+        blog = models.Blog.objects.create(
+            user=sample_user(),
+            title='Sample Title',
+            text='Sample Text'
+        )
+
+        self.assertEqual(str(blog), blog.title)
