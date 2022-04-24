@@ -247,3 +247,66 @@ class PictureImageUploadTests(TestCase):
         self.assertIn(serializer1.data, res.data)
         self.assertIn(serializer2.data, res.data)
         self.assertNotIn(serializer3.data, res.data)
+
+    def test_search_blog_by_title(self):
+        """Test searching blog by title"""
+        blog1 = sample_blog(user=self.user, title="REM")
+        blog2 = sample_blog(user=self.user, title="Andy Warhol")
+
+        res = self.client.get(
+            BLOG_URL,
+            {'search': 'REM'}
+        )
+        serializer1 = BlogSerializer(blog1)
+        serializer2 = BlogSerializer(blog2)
+        self.assertEqual(len(res.data), 1)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
+
+    def test_search_blog_by_text(self):
+        """Test searching blog by text"""
+        blog1 = sample_blog(
+            user=self.user,
+            title='Birds',
+            text='The jayhawk is a cool bird.'
+        )
+        blog2 = sample_blog(
+            user=self.user,
+            title='Birds',
+            text='The eagle is a cool bird'
+        )
+
+        res = self.client.get(
+            BLOG_URL,
+            {'search': 'jayhawk'}
+        )
+
+        serializer1 = BlogSerializer(blog1)
+        serializer2 = BlogSerializer(blog2)
+        self.assertEqual(len(res.data), 1)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
+
+    def test_search_blog_by_tag(self):
+        """Test searching blog by tag name"""
+        blog1 = sample_blog(
+            user=self.user
+        )
+        blog2 = sample_blog(
+            user=self.user
+        )
+        tag1 = sample_tag(
+            user=self.user,
+            name='Music'
+        )
+        blog1.tags.add(tag1)
+
+        res = self.client.get(
+            BLOG_URL,
+            {'search': 'Music'}
+        )
+        serializer1 = BlogSerializer(blog1)
+        serializer2 = BlogSerializer(blog2)
+        self.assertEqual(len(res.data), 1)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
