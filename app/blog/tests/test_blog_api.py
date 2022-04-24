@@ -225,3 +225,25 @@ class PictureImageUploadTests(TestCase):
         res = self.client.post(url, {'image': 'notimage'}, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_blogs_by_tags(self):
+        """Test returning blogs with specific tags"""
+        blog1 = sample_blog(user=self.user, title="Bad Brains")
+        blog2 = sample_blog(user=self.user, title="Andy Warhol")
+        tag1 = sample_tag(user=self.user, name="Music")
+        tag2 = sample_tag(user=self.user, name="Art")
+        blog1.tags.add(tag1)
+        blog2.tags.add(tag2)
+        blog3 = sample_blog(user=self.user, title="Ice Cream Sandwich")
+
+        res = self.client.get(
+            BLOG_URL,
+            {'tags': f'{tag1.id},{tag2.id}'}
+        )
+
+        serializer1 = BlogSerializer(blog1)
+        serializer2 = BlogSerializer(blog2)
+        serializer3 = BlogSerializer(blog3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
