@@ -9,7 +9,7 @@ from core.models import Tag, Blog
 
 from blog.serializers import TagSerializer
 
-TAGS_URL = reverse('blog:tag-list')
+TAGS_URL = reverse("blog:tag-list")
 
 
 class PublicTagsApiTests(TestCase):
@@ -30,20 +30,19 @@ class PrivateTagsApiTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(
-            'test@andrewtdunn.com',
-            'password123'
+            "test@andrewtdunn.com", "password123"
         )
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
     def test_retrieve_tags(self):
         """Test retrieving tags"""
-        Tag.objects.create(user=self.user, name='Music')
-        Tag.objects.create(user=self.user, name='Art')
+        Tag.objects.create(user=self.user, name="Music")
+        Tag.objects.create(user=self.user, name="Art")
 
         res = self.client.get(TAGS_URL)
 
-        tags = Tag.objects.all().order_by('-name')
+        tags = Tag.objects.all().order_by("-name")
         serializer = TagSerializer(tags, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
@@ -51,48 +50,40 @@ class PrivateTagsApiTests(TestCase):
     def test_tags_limited_to_user(self):
         """Test that tags returned are for the authenticated user"""
         user2 = get_user_model().objects.create_user(
-            'other@andrewtdunn.com',
-            'testpass'
+            "other@andrewtdunn.com", "testpass"
         )
-        Tag.objects.create(user=user2, name='Hip Hop')
-        tag = Tag.objects.create(user=self.user, name='AI')
+        Tag.objects.create(user=user2, name="Hip Hop")
+        tag = Tag.objects.create(user=self.user, name="AI")
 
         res = self.client.get(TAGS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
-        self.assertEqual(res.data[0]['name'], tag.name)
+        self.assertEqual(res.data[0]["name"], tag.name)
 
     def test_create_tag_successful(self):
         """Test creating a new tag"""
-        payload = {'name': 'Test Tag'}
+        payload = {"name": "Test Tag"}
         self.client.post(TAGS_URL, payload)
 
-        exists = Tag.objects.filter(
-            user=self.user,
-            name=payload['name']
-        ).exists()
+        exists = Tag.objects.filter(user=self.user, name=payload["name"]).exists()
         self.assertTrue(exists)
 
     def test_create_tag_invalid(self):
         """Test creating a new tag with invalid payload"""
-        payload = {'name': ''}
+        payload = {"name": ""}
         res = self.client.post(TAGS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_retrieve_tags_assigned_to_blogs(self):
         """Test filtering tags by those assigned to blogs"""
-        tag1 = Tag.objects.create(user=self.user, name='Music')
-        tag2 = Tag.objects.create(user=self.user, name='Art')
-        blog = Blog.objects.create(
-            title='REM',
-            text='music article',
-            user=self.user
-        )
+        tag1 = Tag.objects.create(user=self.user, name="Music")
+        tag2 = Tag.objects.create(user=self.user, name="Art")
+        blog = Blog.objects.create(title="REM", text="music article", user=self.user)
         blog.tags.add(tag1)
 
-        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+        res = self.client.get(TAGS_URL, {"assigned_only": 1})
 
         serializer1 = TagSerializer(tag1)
         serizliaer2 = TagSerializer(tag2)
@@ -101,21 +92,15 @@ class PrivateTagsApiTests(TestCase):
 
     def test_retrieve_tags_assigned_unique(self):
         """Test filtering tags by assigned return unique items"""
-        tag = Tag.objects.create(user=self.user, name='Music')
-        Tag.objects.create(user=self.user, name='Art')
-        blog1 = Blog.objects.create(
-            title='REM',
-            text='this is a test',
-            user=self.user
-        )
+        tag = Tag.objects.create(user=self.user, name="Music")
+        Tag.objects.create(user=self.user, name="Art")
+        blog1 = Blog.objects.create(title="REM", text="this is a test", user=self.user)
         blog1.tags.add(tag)
         blog2 = Blog.objects.create(
-            title='Andy Warhol',
-            text='this is a test',
-            user=self.user
+            title="Andy Warhol", text="this is a test", user=self.user
         )
         blog2.tags.add(tag)
 
-        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+        res = self.client.get(TAGS_URL, {"assigned_only": 1})
 
         self.assertEqual(len(res.data), 1)

@@ -1,12 +1,12 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from blog import views
+from picture import views
 
 router = DefaultRouter()
-router.register("tags", views.TagViewSet)
-router.register("blogs", views.BlogViewSet)
+router.register("picture", views.PictureViewSet)
+router.register("slideshow", views.SlideshowViewSet)
 
-app_name = "blog"
+app_name = "picture"
 
 urlpatterns = [path("", include(router.urls))]

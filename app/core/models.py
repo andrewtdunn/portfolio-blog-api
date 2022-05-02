@@ -1,25 +1,25 @@
-import uuid
 import os
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
-                                    PermissionsMixin # noqa
+import uuid
+
 from django.conf import settings
+from django.contrib.auth.models import PermissionsMixin  # noqa
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.db import models
 
 
 def picture_image_file_path(instance, filename):
     """Generate filepath for new picture image"""
-    ext = filename.split('.')[-1]
-    filename = f'{uuid.uuid4()}.{ext}'
+    ext = filename.split(".")[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
 
-    return os.path.join('uploads/picture/', filename)
+    return os.path.join("uploads/picture/", filename)
 
 
 class UserManager(BaseUserManager):
-
     def create_user(self, email, password=None, **extra_fields):
         """Creates and saves a new user"""
         if not email:
-            raise ValueError('Users must have an email address')
+            raise ValueError("Users must have an email address")
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
         user.save(using=self.db)
@@ -39,6 +39,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom user model that supports using email instead of username"""
+
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
@@ -46,11 +47,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
 
 
 class Tag(models.Model):
     """Tag to be used for a recipe"""
+
     name = models.CharField(max_length=255)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -63,11 +65,9 @@ class Tag(models.Model):
 
 class Picture(models.Model):
     """Picture to be used in a post, portfolio, or bio"""
+
     caption = models.CharField(max_length=255)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     image = models.ImageField(null=True, upload_to=picture_image_file_path)
 
     def __str__(self):
@@ -76,14 +76,39 @@ class Picture(models.Model):
 
 class Blog(models.Model):
     """Blog post"""
+
     title = models.CharField(max_length=255)
     text = models.TextField(blank=True)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    pictures = models.ManyToManyField("Picture")
+    tags = models.ManyToManyField("Tag")
+
+    def __str__(self):
+        return self.title
+
+
+class Project(models.Model):
+    """Portfolio project"""
+
+    title = models.CharField(max_length=255)
+    tagline = models.TextField(blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    slideshow = models.OneToOneField(
+        "Slideshow", on_delete=models.CASCADE, blank=True, null=True
     )
-    pictures = models.ManyToManyField('Picture')
-    tags = models.ManyToManyField('Tag')
+
+    def __str__(self):
+        return self.title
+
+
+class Slideshow(models.Model):
+    """Slideshow for generic use"""
+
+    title = models.CharField(max_length=255, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=0
+    )
+    pictures = models.ManyToManyField("Picture")
 
     def __str__(self):
         return self.title
